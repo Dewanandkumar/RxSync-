@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Rx Reminder Test Suite</title>
+  <script src="../core/medical-parser.js"></script>
+  <script src="../core/calendar-helper.js"></script>
+  <script src="../sdk/sample-prescriptions.js"></script>
+</head>
+<body>
+  <h1>Test Results</h1>
+  <div id="results">Running tests...</div>
+
+  <script>
+    const results = [];
+
+    function assert(condition, message) {
+      if (!condition) {
+        results.push(`❌ FAILED: ${message}`);
+        throw new Error(message);
+      } else {
+        results.push(`✅ PASSED: ${message}`);
+      }
+    }
+
+    try {
+      // Test 1: Acute sample parsing
+      const acuteSample = SAMPLE_PRESCRIPTIONS.find(s => s.id === 'sample-acute');
+      const meds1 = MedicalParser.parsePrescriptionText(acuteSample.text);
+      assert(meds1.length >= 3, `Expected at least 3 medications in acute sample, got ${meds1.length}`);
+      
+      const augmentin = meds1.find(m => m.name.toLowerCase().includes('augmentin'));
+      assert(!!augmentin, 'Augmentin extracted');
+      assert(augmentin.dosage === '625mg', `Augmentin dosage parsed as 625mg, got "${augmentin.dosage}"`);
+      assert(augmentin.frequency === '1-0-1', `Augmentin frequency parsed as 1-0-1, got "${augmentin.frequency}"`);
+      assert(augmentin.durationDays === 5, `Augmentin duration is 5 days, got ${augmentin.durationDays}`);
+      assert(augmentin.instructions.toLowerCase().includes('after'), 'Augmentin food instructions extracted');
+
+      const dolo = meds1.find(m => m.name.toLowerCase().includes('dolo'));
+      assert(!!dolo, 'Dolo 650mg extracted');
+      assert(dolo.dosage === '650mg', `Dolo dosage parsed as 650mg, got "${dolo.dosage}"`);
+      assert(dolo.times.length === 3, `Dolo has 3 daily slots (TDS), got ${dolo.times.length}`);
+
+      // Test 2: Chronic sample parsing
+      const chronicSample = SAMPLE_PRESCRIPTIONS.find(s => s.id === 'sample-chronic');
+      const meds2 = MedicalParser.parsePrescriptionText(chronicSample.text);
+      assert(meds2.length >= 3, `Expected at least 3 medications in chronic sample, got ${meds2.length}`);
+
+      const metformin = meds2.find(m => m.name.toLowerCase().includes('metformin'));
+      assert(!!metformin, 'Metformin extracted');
+      assert(metformin.durationDays === 30, `Metformin duration is 30 days, got ${metformin.durationDays}`);
+
+      // Test 3: Google Calendar Web Intent URL Generation
+      const gcalUrls = CalendarHelper.generateMedicationCalendarUrls(augmentin);
+      assert(gcalUrls.length === 2, `Augmentin 1-0-1 generates 2 daily reminder URLs, got ${gcalUrls.length}`);
+      const mornUrl = gcalUrls[0].url;
+      assert(mornUrl.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE'), 'Google Calendar URL scheme matches template');
+      assert(mornUrl.includes('text=%F0%9F%92%8A%20Take%20Augmentin'), 'URL contains encoded medicine title');
+      assert(mornUrl.includes('recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D5'), 'URL contains 5-day daily recurrence rule (RRULE)');
+
+      // Test 4: iCalendar (.ICS) Export Generation
+      const ics = CalendarHelper.generateIcs(meds1);
+      assert(ics.includes('BEGIN:VCALENDAR'), 'ICS contains VCALENDAR header');
+      assert(ics.includes('BEGIN:VEVENT'), 'ICS contains VEVENT blocks');
+      assert(ics.includes('RRULE:FREQ=DAILY;COUNT=5'), 'ICS contains recurrence rule');
+      assert(ics.includes('BEGIN:VALARM'), 'ICS contains VALARM notification triggers');
+
+      results.push('🎉 ALL AUTOMATED TESTS COMPLETED SUCCESSFULLY!');
+    } catch (e) {
+      results.push(`FATAL ERROR: ${e.message}`);
+    }
+
+    document.getElementById('results').innerHTML = results.map(r => `<div class="test-line">${r}</div>`).join('');
+  </script>
+</body>
+</html>

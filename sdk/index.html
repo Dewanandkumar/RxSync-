@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rx Reminder SDK - Medical Prescription to Google Reminder (Prototype Spike)</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --success: #1e8e3e;
+      --warning: #f9ab00;
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --border: #dadce0;
+      --text: #202124;
+      --text-sub: #5f6368;
+      --pill-bg: #e8f0fe;
+      --pill-text: #1967d2;
+      --shadow: 0 1px 3px rgba(60,64,67,0.15), 0 1px 2px rgba(60,64,67,0.1);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+
+    .header { max-width: 1080px; margin: 0 auto 24px auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .header-title .icon { font-size: 32px; }
+    .header-title h1 { font-size: 24px; font-weight: 600; color: #1f1f1f; }
+    .badge-spike { background: #e6f4ea; color: #137333; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 16px; text-transform: uppercase; }
+
+    .container { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+
+    .dropzone { border: 2px dashed #4285f4; background: #f8fbff; border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 14px; }
+    .dropzone:hover { background: #eef5fe; border-color: var(--primary); }
+    .dropzone p { color: var(--text-sub); font-size: 13px; margin-top: 6px; }
+
+    .sample-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .btn-chip { background: #f1f3f4; border: 1px solid #dadce0; border-radius: 16px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; transition: background 0.15s; }
+    .btn-chip:hover { background: #e8eaed; }
+    .btn-chip.active { background: var(--pill-bg); border-color: #8ab4f8; color: var(--pill-text); }
+
+    textarea { width: 100%; height: 180px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 13px; resize: vertical; margin-bottom: 12px; }
+    textarea:focus { outline: none; border-color: var(--primary); ring: 2px solid #aecbfa; }
+
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: white; color: var(--primary); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-secondary:hover { background: #f8f9fa; border-color: var(--primary); }
+
+    /* Med cards */
+    .med-list { display: flex; flex-direction: column; gap: 14px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+    .med-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: #fff; transition: box-shadow 0.2s; }
+    .med-card:hover { box-shadow: var(--shadow); border-color: #aecbfa; }
+    .med-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .med-name { font-size: 16px; font-weight: 600; color: #1a73e8; }
+    .med-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+    .tag { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
+    .tag-form { background: #e8f0fe; color: #1967d2; }
+    .tag-freq { background: #fce8e6; color: #c5221f; font-weight: 600; }
+    .tag-duration { background: #e6f4ea; color: #137333; }
+    .med-details { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
+
+    .slots-container { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; border-top: 1px solid #f1f3f4; pt: 8px; padding-top: 8px; }
+    .slot-row { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+    .slot-time { font-weight: 600; color: #3c4043; display: flex; align-items: center; gap: 6px; }
+    
+    .btn-reminder { background: #1a73e8; color: white; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; }
+    .btn-reminder:hover { background: #1557b0; }
+
+    .actions-bar { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px; }
+    .empty-state { text-align: center; color: var(--text-sub); padding: 40px 20px; font-size: 14px; }
+
+    /* Code section */
+    .code-box { background: #202124; color: #8ab4f8; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 12px; margin-top: 16px; overflow-x: auto; white-space: pre; }
+  </style>
+  <script src="./lib/pdf.min.js"></script>
+  <script src="./core/medical-parser.js"></script>
+  <script src="./core/calendar-helper.js"></script>
+  <script src="./core/pdf-reader.js"></script>
+  <script src="./rx-reminder-sdk.js"></script>
+  <script src="./sample-prescriptions.js"></script>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-title">
+      <span class="icon">💊</span>
+      <div>
+        <h1>Rx to Google Reminder SDK <span class="badge-spike">Spike Prototype</span></h1>
+        <p style="color: var(--text-sub); font-size: 13px;">Extract prescription schedules and trigger 1-Tap Google Calendar Reminders</p>
+      </div>
+    </div>
+    <div>
+      <button class="btn-secondary" onclick="exportScheduleIcs()" id="btn-export-all" style="display:none;">
+        📅 Download All (.ICS)
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Left: Input and Presets -->
+    <div class="card">
+      <h2>
+        <span>1. Prescription Input</span>
+        <span style="font-size: 12px; color: var(--text-sub); font-weight: normal;">PDF or Text</span>
+      </h2>
+
+      <!-- PDF Dropzone -->
+      <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handlePdfUpload(this.files[0])">
+      <div class="dropzone" id="dropzone" onclick="triggerFileInput()">
+        <div id="dropzone-content">
+          <span style="font-size: 28px;">📄</span>
+          <div style="font-weight: 500; font-size: 14px; color: #1a73e8;">Drop prescription PDF here or click to browse</div>
+          <p>Runs 100% locally via embedded Mozilla PDF.js</p>
+        </div>
+      </div>
+
+      <!-- Preset Prescriptions -->
+      <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500;">Or load doctor prescription preset:</div>
+      <div class="sample-btn-group" id="sample-buttons"></div>
+
+      <!-- Raw Text Area -->
+      <textarea id="prescription-text" placeholder="Type or paste medical prescription text here..."></textarea>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn-primary" onclick="processCurrentText()">
+          🔍 Parse & Extract Reminders
+        </button>
+        <button class="btn-secondary" onclick="clearAll()">Clear</button>
+      </div>
+
+      <!-- SDK Code snippet -->
+      <div class="code-box">
+// How to use RxReminderSDK in your code:
+const medicines = RxReminderSDK.parseText(prescriptionText);
+// Generate 1-tap Google Calendar Reminders:
+const reminders = RxReminderSDK.getAllReminderUrls(medicines);
+// Launch 1-tap reminder directly:
+RxReminderSDK.openReminder(reminders[0].reminders[0].url);</div>
+    </div>
+
+    <!-- Right: Extracted Medicine Cards & 1-Tap Actions -->
+    <div class="card">
+      <h2>
+        <span>2. Medication Reminders</span>
+        <span id="med-count-badge" class="badge-spike" style="display:none;">0 Medicines</span>
+      </h2>
+
+      <div id="med-list" class="med-list">
+        <div class="empty-state">
+          <span>👈 Upload a PDF prescription or pick a sample preset on the left to extract medication schedules.</span>
+        </div>
+      </div>
+
+      <div id="summary-bar" class="actions-bar" style="display: none;">
+        <div style="font-size: 13px; color: var(--text-sub);">
+          Tap any button to create a pre-filled recurring Google Reminder.
+        </div>
+        <button class="btn-primary" onclick="openAllReminders()">
+          ⚡ Open All in Google Calendar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMedicines = [];
+
+    // Initialize samples on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSampleButtons();
+      // Load first sample by default
+      if (typeof SAMPLE_PRESCRIPTIONS !== 'undefined' && SAMPLE_PRESCRIPTIONS.length > 0) {
+        loadSample(SAMPLE_PRESCRIPTIONS[0].id);
+      }
+    });
+
+    function renderSampleButtons() {
+      const container = document.getElementById('sample-buttons');
+      if (!container || typeof SAMPLE_PRESCRIPTIONS === 'undefined') return;
+      container.innerHTML = '';
+      SAMPLE_PRESCRIPTIONS.forEach((sample, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-chip' + (idx === 0 ? ' active' : '');
+        btn.innerText = sample.title.split('/')[0].trim();
+        btn.onclick = () => loadSample(sample.id);
+        container.appendChild(btn);
+      });
+    }
+
+    function loadSample(sampleId) {
+      const sample = SAMPLE_PRESCRIPTIONS.find(s => s.id === sampleId);
+      if (!sample) return;
+      document.getElementById('prescription-text').value = sample.text;
+      
+      // Update active chip
+      const buttons = document.querySelectorAll('.btn-chip');
+      buttons.forEach(b => {
+        if (b.innerText.toLowerCase().includes(sample.title.split('/')[0].trim().toLowerCase())) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      processCurrentText();
+    }
+
+    function triggerFileInput() {
+      const fileInput = document.getElementById('file-input');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
+    }
+
+    async function handlePdfUpload(file) {
+      if (!file) return;
+      const content = document.getElementById('dropzone-content');
+      if (content) {
+        content.innerHTML = `
+          <span style="font-size: 28px;">⏳</span>
+          <div style="font-weight: 500; font-size: 14px; color: #1a73e8;">Processing ${escapeHtml(file.name)}...</div>
+          <p>Extracting text pages...</p>
+        `;
+      }
+
+      try {
+        const result = await RxReminderSDK.parsePdf(file);
+        document.getElementById('prescription-text').value = result.rawText;
+        if (content) {
+          content.innerHTML = `
+            <span style="font-size: 28px;">✅</span>
+            <div style="font-weight: 500; font-size: 14px; color: #137333;">Parsed ${escapeHtml(file.name)} (${result.numPages} page)</div>
+            <p style="color:#1a73e8; font-weight:500; text-decoration:underline;">Click to replace with another PDF</p>
+          `;
+        }
+        renderMedicines(result.medicines);
+      } catch (err) {
+        alert('Error reading PDF: ' + err.message);
+        if (content) {
+          content.innerHTML = `
+            <span style="font-size: 28px;">❌</span>
+            <div style="font-weight: 500; font-size: 14px; color: #d93025;">Failed to read PDF</div>
+            <p style="color:#1a73e8; font-weight:500; text-decoration:underline;">Click to try another file</p>
+          `;
+        }
+      } finally {
+        const fileInput = document.getElementById('file-input');
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    function resetDropzone() {
+      const content = document.getElementById('dropzone-content');
+      if (content) {
+        content.innerHTML = `
+          <span style="font-size: 28px;">📄</span>
+          <div style="font-weight: 500; font-size: 14px; color: #1a73e8;">Drop prescription PDF here or click to browse</div>
+          <p>Runs 100% locally via embedded Mozilla PDF.js</p>
+        `;
+      }
+    }
+
+    // Drag and drop support
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#1a73e8'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#4285f4'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#4285f4';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handlePdfUpload(e.dataTransfer.files[0]);
+      }
+    });
+
+    function processCurrentText() {
+      const text = document.getElementById('prescription-text').value;
+      if (!text.trim()) {
+        renderMedicines([]);
+        return;
+      }
+      const medicines = RxReminderSDK.parseText(text);
+      renderMedicines(medicines);
+    }
+
+    function renderMedicines(medicines) {
+      currentMedicines = medicines;
+      const list = document.getElementById('med-list');
+      const badge = document.getElementById('med-count-badge');
+      const summaryBar = document.getElementById('summary-bar');
+      const exportBtn = document.getElementById('btn-export-all');
+
+      if (!medicines || medicines.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <span>No medications recognized in the provided text. Ensure drug names or dosages (e.g. 500mg, 1-0-1) are present.</span>
+          </div>`;
+        badge.style.display = 'none';
+        summaryBar.style.display = 'none';
+        exportBtn.style.display = 'none';
+        return;
+      }
+
+      badge.innerText = `${medicines.length} Medicine${medicines.length > 1 ? 's' : ''}`;
+      badge.style.display = 'inline-block';
+      summaryBar.style.display = 'flex';
+      exportBtn.style.display = 'inline-flex';
+
+      list.innerHTML = '';
+
+      medicines.forEach(med => {
+        const card = document.createElement('div');
+        card.className = 'med-card';
+
+        const reminderUrls = RxReminderSDK.getMedicineReminderUrls(med);
+
+        let slotsHtml = reminderUrls.map(rem => `
+          <div class="slot-row">
+            <div class="slot-time">
+              <span>⏰</span>
+              <span>${rem.slot} (${rem.time})</span>
+            </div>
+            <a href="${rem.url}" target="_blank" rel="noopener noreferrer" class="btn-reminder" title="One-tap click to add to Google Calendar">
+              <span>+ 1-Tap Google Reminder</span>
+            </a>
+          </div>
+        `).join('');
+
+        card.innerHTML = `
+          <div class="med-header">
+            <div>
+              <div class="med-name">💊 ${med.name}</div>
+              <div class="med-badges">
+                <span class="tag tag-form">${med.form}</span>
+                <span class="tag tag-form" style="background:#e6f4ea; color:#137333;">${med.dosage}</span>
+                <span class="tag tag-freq">${med.frequency}</span>
+                <span class="tag tag-duration">${med.durationText}</span>
+              </div>
+            </div>
+          </div>
+          <div class="med-details">
+            <div><strong>Instructions:</strong> ${med.instructions}</div>
+            <div><strong>Schedule:</strong> ${med.timingDescription}</div>
+          </div>
+          <div class="slots-container">
+            ${slotsHtml}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function openAllReminders() {
+      if (!currentMedicines || currentMedicines.length === 0) return;
+      const all = RxReminderSDK.getAllReminderUrls(currentMedicines);
+      let count = 0;
+      all.forEach(item => {
+        item.reminders.forEach(r => {
+          count++;
+          window.open(r.url, '_blank');
+        });
+      });
+    }
+
+    function exportScheduleIcs() {
+      if (!currentMedicines || currentMedicines.length === 0) return;
+      RxReminderSDK.downloadIcs(currentMedicines, 'Doctor_Prescription_Reminders.ics');
+    }
+
+    function clearAll() {
+      document.getElementById('prescription-text').value = '';
+      resetDropzone();
+      renderMedicines([]);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+  </script>
+</body>
+</html>

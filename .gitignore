@@ -1,0 +1,12 @@
+﻿# Test outputs and temporary logs
+test-data/*output.txt
+*.log
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE configs
+.vscode/
+.idea/

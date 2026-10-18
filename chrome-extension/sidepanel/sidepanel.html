@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rx Reminder Side Panel</title>
+  <link rel="stylesheet" href="../popup/popup.css">
+  <style>
+    body {
+      width: 100%;
+      height: 100vh;
+      max-height: none;
+      display: flex;
+      flex-direction: column;
+    }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo">
+      <span class="pill-icon">💊</span>
+      <div class="title-wrap">
+        <h1>Rx Reminder Side Panel</h1>
+        <span class="subtitle">Side-by-side with your PDF</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <!-- Dropzone Area -->
+    <div id="dropzone" class="dropzone">
+      <input type="file" id="file-input" accept=".pdf" class="hidden-input">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">Drop prescription PDF or click to browse</div>
+      <div class="drop-sub">100% private & client-side extraction</div>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="sample-bar">
+      <span class="sample-label">Sample Prescriptions:</span>
+      <div id="sample-chips" class="sample-chips"></div>
+    </div>
+
+    <!-- Collapsible Text / Manual Input -->
+    <div class="input-accordion">
+      <button id="toggle-text-btn" class="text-toggle-btn">
+        <span>✏️ View / Edit Extracted Text</span>
+        <span id="toggle-arrow">▼</span>
+      </button>
+      <div id="text-input-wrap" class="text-input-wrap hidden">
+        <textarea id="prescription-text" placeholder="Prescription text..."></textarea>
+        <button id="btn-parse-text" class="btn btn-secondary btn-sm">Re-parse Text</button>
+      </div>
+    </div>
+
+    <!-- Medication List Section -->
+    <section class="results-section">
+      <div class="section-header">
+        <h2>Detected Medications</h2>
+        <span id="med-counter" class="badge">0 Detected</span>
+      </div>
+
+      <div id="med-container" class="med-container">
+        <div class="empty-state" id="empty-state">
+          <p>Drop a prescription PDF or select a sample above.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <button id="btn-export-ics" class="btn btn-secondary" disabled>
+      📅 Export (.ICS)
+    </button>
+    <button id="btn-sync-all" class="btn btn-primary" disabled>
+      ⚡ 1-Tap Sync All
+    </button>
+  </footer>
+
+  <script src="../lib/pdf.min.js"></script>
+  <script src="../core/medical-parser.js"></script>
+  <script src="../core/calendar-helper.js"></script>
+  <script src="../core/pdf-reader.js"></script>
+  <script src="../sample-prescriptions.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

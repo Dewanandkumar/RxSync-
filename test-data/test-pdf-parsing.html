@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF Parsing End-to-End Test</title>
+  <script src="../chrome-extension/lib/pdf.min.js"></script>
+  <script src="../core/medical-parser.js"></script>
+  <script src="../core/calendar-helper.js"></script>
+  <script src="../core/pdf-reader.js"></script>
+</head>
+<body>
+  <div id="status">Testing PDF load...</div>
+  <div id="output"></div>
+
+  <script>
+    async function runPdfTest() {
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '../chrome-extension/lib/pdf.worker.min.js';
+        
+        const response = await fetch('./sample-prescription.pdf');
+        const arrayBuffer = await response.arrayBuffer();
+
+        const result = await PdfReader.extractTextFromPdf(arrayBuffer);
+        const meds = MedicalParser.parsePrescriptionText(result.text);
+
+        const out = [
+          `PDF_PAGES:${result.numPages}`,
+          `MEDICINES_FOUND:${meds.length}`,
+          ...meds.map(m => `MED:${m.name}|${m.dosage}|${m.frequency}|${m.durationDays}d`)
+        ];
+
+        document.getElementById('status').innerText = 'SUCCESS';
+        document.getElementById('output').innerText = out.join('\n');
+      } catch (err) {
+        document.getElementById('status').innerText = 'ERROR: ' + err.message;
+      }
+    }
+
+    runPdfTest();
+  </script>
+</body>
+</html>
