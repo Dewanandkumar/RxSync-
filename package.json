@@ -1,0 +1,29 @@
+{
+  "name": "rxsync",
+  "version": "1.0.0",
+  "description": "Prescription to Google Calendar & Smart Medicine Alarm in One Tap.",
+  "main": "index.html",
+  "scripts": {
+    "test": "node test-data/test-suite-node.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dewanandkumar/RxSync-.git"
+  },
+  "keywords": [
+    "prescription",
+    "google-calendar",
+    "medicine-reminder",
+    "alarm",
+    "pwa",
+    "chrome-extension",
+    "healthcare",
+    "ocr"
+  ],
+  "author": "Dewanand Kumar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Dewanandkumar/RxSync-/issues"
+  },
+  "homepage": "https://dewanandkumar.github.io/RxSync-/"
+}
