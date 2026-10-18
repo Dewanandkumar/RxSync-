@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rx Reminder SDK - Medical Prescription to Google Reminder (Spike Prototype)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RxSync - Prescription & Smart Medicine Alarm</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="RxSync">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+
   <style>
     :root {
       --primary: #1a73e8;
@@ -23,38 +33,85 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+    body { background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
 
-    .header { max-width: 1080px; margin: 0 auto 24px auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    /* Mobile install top banner */
+    .pwa-mobile-banner {
+      max-width: 1080px;
+      margin: 0 auto 16px auto;
+      background: #e8f0fe;
+      border: 1px solid #c2e7ff;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .btn-close-banner {
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .header { max-width: 1080px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
     .header-title { display: flex; align-items: center; gap: 12px; }
     .header-title .icon { font-size: 32px; }
-    .header-title h1 { font-size: 24px; font-weight: 600; color: #1f1f1f; }
-    .badge-spike { background: #e6f4ea; color: #137333; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 16px; text-transform: uppercase; }
+    .header-title h1 { font-size: 22px; font-weight: 600; color: #1f1f1f; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge-pwa { background: #e6f4ea; color: #137333; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 14px; text-transform: uppercase; border: 1px solid #ceead6; }
 
-    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-    .container { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
+    .btn-install {
+      background: linear-gradient(135deg, #1a73e8, #0d47a1);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(26,115,232,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-install:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(26,115,232,0.45);
+    }
 
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-    .card h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .container { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 860px) {
+      body { padding: 12px; }
+      .container { grid-template-columns: 1fr; gap: 16px; }
+      .header-actions { width: 100%; justify-content: flex-start; }
+    }
 
-    .dropzone { border: 2px dashed #4285f4; background: #f8fbff; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+    .dropzone { border: 2px dashed #4285f4; background: #f8fbff; border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
     .dropzone:hover { background: #eef5fe; border-color: var(--primary); }
     .dropzone p { color: var(--text-sub); font-size: 13px; margin-top: 6px; }
 
     .preview-thumb-wrap { margin-top: 10px; display: flex; justify-content: center; }
     .preview-thumb { max-height: 120px; max-width: 100%; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-    .sample-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .sample-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .btn-chip { background: #f1f3f4; border: 1px solid #dadce0; border-radius: 16px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; transition: background 0.15s; }
     .btn-chip:hover { background: #e8eaed; }
     .btn-chip.active { background: var(--pill-bg); border-color: #8ab4f8; color: var(--pill-text); }
 
-    textarea { width: 100%; height: 160px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 13px; resize: vertical; margin-bottom: 12px; }
+    textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 13px; resize: vertical; margin-bottom: 12px; }
     textarea:focus { outline: none; border-color: var(--primary); }
 
-    .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: white; color: var(--primary); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn-secondary:hover { background: #f8f9fa; border-color: var(--primary); }
@@ -62,7 +119,7 @@
     .btn-alarm:hover { background: #feefc3; }
 
     /* Med cards */
-    .med-list { display: flex; flex-direction: column; gap: 14px; max-height: 600px; overflow-y: auto; padding-right: 4px; }
+    .med-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 4px; }
     .med-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: #fff; transition: box-shadow 0.2s; position: relative; }
     .med-card:hover { box-shadow: var(--shadow); border-color: #aecbfa; }
     .med-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
@@ -84,7 +141,7 @@
     .slots-container { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; border-top: 1px solid #f1f3f4; padding-top: 8px; }
     .slot-row { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; flex-wrap: wrap; gap: 6px; }
     .slot-time { font-weight: 600; color: #3c4043; display: flex; align-items: center; gap: 8px; }
-    .time-input { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; font-family: inherit; font-weight: 600; background: #fff; }
+    .time-input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; font-family: inherit; font-weight: 600; background: #fff; }
     
     .btn-reminder { background: #1a73e8; color: white; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; }
     .btn-reminder:hover { background: #1557b0; }
@@ -94,17 +151,17 @@
 
     /* Live Alarm Modal Overlay */
     .alarm-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.65); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(3px); }
-    .alarm-modal { background: #fff; border-radius: 16px; padding: 28px; width: 90%; max-width: 440px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: pulseAlert 1.2s infinite alternate; }
+    .alarm-modal { background: #fff; border-radius: 16px; padding: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: pulseAlert 1.2s infinite alternate; }
     @keyframes pulseAlert { 0% { transform: scale(1); box-shadow: 0 10px 25px rgba(217, 48, 37, 0.25); } 100% { transform: scale(1.02); box-shadow: 0 14px 35px rgba(217, 48, 37, 0.45); } }
-    .alarm-bell { font-size: 48px; margin-bottom: 8px; animation: ringShake 0.6s infinite ease-in-out; display: inline-block; }
+    .alarm-bell { font-size: 44px; margin-bottom: 8px; animation: ringShake 0.6s infinite ease-in-out; display: inline-block; }
     @keyframes ringShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); } }
-    .alarm-title { font-size: 20px; font-weight: 700; color: #d93025; margin-bottom: 6px; }
-    .alarm-med-name { font-size: 18px; font-weight: 600; color: #1a73e8; margin-bottom: 8px; }
-    .alarm-details { font-size: 14px; color: #5f6368; margin-bottom: 20px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-    .alarm-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .btn-taken { background: #1e8e3e; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .alarm-title { font-size: 19px; font-weight: 700; color: #d93025; margin-bottom: 6px; }
+    .alarm-med-name { font-size: 17px; font-weight: 600; color: #1a73e8; margin-bottom: 8px; }
+    .alarm-details { font-size: 13px; color: #5f6368; margin-bottom: 18px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+    .alarm-btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn-taken { background: #1e8e3e; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-taken:hover { background: #137333; }
-    .btn-snooze { background: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .btn-snooze { background: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
     .btn-snooze:hover { background: #e8eaed; }
   </style>
 
@@ -118,6 +175,39 @@
   <script src="./sample-prescriptions.js"></script>
 </head>
 <body>
+
+  <!-- Mobile PWA Install Banner -->
+  <div id="pwa-mobile-banner" class="pwa-mobile-banner" style="display:none;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <img src="./icons/icon-192.png" alt="RxSync" style="width: 38px; height: 38px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div>
+        <div style="font-weight: 600; font-size: 13px; color: #1f1f1f;">Install RxSync App</div>
+        <div style="font-size: 11px; color: #5f6368;">Add to mobile home screen for 1-tap alarms</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="triggerPwaInstall()">Install</button>
+      <button class="btn-close-banner" onclick="dismissBanner()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- iOS PWA Install Guidance Modal -->
+  <div id="ios-install-modal" class="alarm-modal-overlay" onclick="closeIosModal(event)">
+    <div class="alarm-modal" style="max-width: 380px; text-align: left; animation: none;">
+      <div style="text-align: center; margin-bottom: 14px;">
+        <img src="./icons/icon-192.png" style="width: 56px; height: 56px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        <h3 style="margin-top: 8px; font-size: 17px; color: #1a73e8;">iPhone / iPad par Install karein</h3>
+      </div>
+      <div style="font-size: 13px; color: #3c4043; line-height: 1.6; background: #f8f9fa; padding: 14px; border-radius: 10px;">
+        <div style="margin-bottom: 10px;">1. Safari browser me neeche <strong>Share icon (⎋)</strong> par tap karein.</div>
+        <div style="margin-bottom: 10px;">2. Thoda scroll karke <strong>'Add to Home Screen' (होम स्क्रीन में जोड़ें)</strong> chunein.</div>
+        <div>3. Top-right me <strong>'Add'</strong> dabayein!</div>
+      </div>
+      <div style="text-align: center; margin-top: 16px;">
+        <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="document.getElementById('ios-install-modal').style.display='none'">Theek Hai / Got it</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Live Alarm Ringing Modal -->
   <div id="alarm-overlay" class="alarm-modal-overlay">
@@ -141,11 +231,15 @@
     <div class="header-title">
       <span class="icon">💊</span>
       <div>
-        <h1>Rx to Google Reminder SDK <span class="badge-spike">Spike Prototype</span></h1>
-        <p style="color: var(--text-sub); font-size: 13px;">Supports PDF, PNG, JPG photos up to 5MB, custom schedules & live audio timer</p>
+        <h1>RxSync <span class="badge-pwa">📱 PWA App</span></h1>
+        <p style="color: var(--text-sub); font-size: 13px;">Prescription to Google Calendar & Smart Medicine Alarm in One Tap</p>
       </div>
     </div>
     <div class="header-actions">
+      <!-- PWA Install Button -->
+      <button id="btn-pwa-install" class="btn-install" onclick="triggerPwaInstall()" title="Install app on your phone or desktop">
+        📲 Install App
+      </button>
       <button class="btn-alarm" onclick="testAlarmSound()" title="Test audio alarm chime">
         🔔 Test Ring Sound
       </button>
@@ -180,7 +274,7 @@
       <!-- Raw Text Area -->
       <textarea id="prescription-text" placeholder="Prescription text appears here... You can also type or paste doctor notes manually."></textarea>
 
-      <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <button class="btn-primary" onclick="processCurrentText()">
           🔍 Parse & Extract Reminders
         </button>
@@ -192,7 +286,7 @@
     <div class="card">
       <h2>
         <span>2. Medication Reminders & Live Timer</span>
-        <span id="med-count-badge" class="badge-spike" style="display:none;">0 Medicines</span>
+        <span id="med-count-badge" class="badge-pwa" style="display:none;">0 Medicines</span>
       </h2>
 
       <div id="med-list" class="med-list">
@@ -217,10 +311,100 @@
     let activeAlarmMed = null;
     let triggeredToday = {}; // Keep track of alarms fired in the current minute
 
+    // --- PWA Service Worker & Install Handling ---
+    let deferredInstallPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[RxSync SW] Registered scope:', reg.scope))
+          .catch(err => console.log('[RxSync SW] Registration error:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const installBtn = document.getElementById('btn-pwa-install');
+      const mobileBanner = document.getElementById('pwa-mobile-banner');
+      if (installBtn) installBtn.style.display = 'inline-flex';
+      if (mobileBanner && !sessionStorage.getItem('rxsync-banner-dismissed')) {
+        mobileBanner.style.display = 'flex';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      const installBtn = document.getElementById('btn-pwa-install');
+      const mobileBanner = document.getElementById('pwa-mobile-banner');
+      if (installBtn) {
+        installBtn.style.display = 'inline-flex';
+        installBtn.innerHTML = '✓ App Installed';
+        installBtn.style.background = '#e6f4ea';
+        installBtn.style.color = '#137333';
+        installBtn.style.cursor = 'default';
+        installBtn.onclick = null;
+      }
+      if (mobileBanner) mobileBanner.style.display = 'none';
+      alert('🎉 RxSync is now installed on your Home Screen!');
+    });
+
+    function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('[RxSync] User accepted the install prompt');
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIos) {
+          document.getElementById('ios-install-modal').style.display = 'flex';
+        } else if (window.matchMedia('(display-mode: standalone)').matches) {
+          alert('✓ RxSync is already installed on this device!');
+        } else {
+          // If browser didn't fire beforeinstallprompt yet
+          alert('To install RxSync on your phone:\n1. Open your browser menu (⋮ three dots)\n2. Tap "Install App" or "Add to Home screen"');
+        }
+      }
+    }
+
+    function dismissBanner() {
+      const mobileBanner = document.getElementById('pwa-mobile-banner');
+      if (mobileBanner) mobileBanner.style.display = 'none';
+      sessionStorage.setItem('rxsync-banner-dismissed', '1');
+    }
+
+    function closeIosModal(e) {
+      if (e.target.id === 'ios-install-modal') {
+        e.target.style.display = 'none';
+      }
+    }
+
+    // Check device / display mode on load
     window.addEventListener('DOMContentLoaded', () => {
+      // If iOS, show install button in header
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const installBtn = document.getElementById('btn-pwa-install');
+
+      if (isStandalone) {
+        if (installBtn) {
+          installBtn.style.display = 'inline-flex';
+          installBtn.innerHTML = '✓ Installed';
+          installBtn.style.background = '#e6f4ea';
+          installBtn.style.color = '#137333';
+          installBtn.style.cursor = 'default';
+          installBtn.onclick = null;
+        }
+      } else if (isIos && installBtn) {
+        installBtn.style.display = 'inline-flex';
+      }
+
       renderSampleButtons();
       if (typeof SAMPLE_PRESCRIPTIONS !== 'undefined' && SAMPLE_PRESCRIPTIONS.length > 0) {
-        // Load the new Alternate Days & 3 Days/week preset if available
         const altPreset = SAMPLE_PRESCRIPTIONS.find(s => s.id === 'sample-alternate-schedule') || SAMPLE_PRESCRIPTIONS[0];
         loadSample(altPreset.id);
       }
@@ -250,110 +434,83 @@
     function loadSample(sampleId) {
       const sample = SAMPLE_PRESCRIPTIONS.find(s => s.id === sampleId);
       if (!sample) return;
-      document.getElementById('prescription-text').value = sample.text;
-      
-      const buttons = document.querySelectorAll('.btn-chip');
-      buttons.forEach(b => {
-        if (b.innerText.toLowerCase().includes(sample.title.split('/')[0].trim().toLowerCase())) {
-          b.classList.add('active');
-        } else {
-          b.classList.remove('active');
-        }
-      });
 
+      document.querySelectorAll('.btn-chip').forEach(b => b.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.btn-chip')).find(b => b.innerText === sample.title.split('/')[0].trim());
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.getElementById('prescription-text').value = sample.text;
+      resetDropzone();
       processCurrentText();
     }
 
     function triggerFileInput() {
-      const fileInput = document.getElementById('file-input');
-      if (fileInput) {
-        fileInput.value = '';
-        fileInput.click();
-      }
+      document.getElementById('file-input').click();
     }
 
     async function handleFileUpload(file) {
       if (!file) return;
 
-      const content = document.getElementById('dropzone-content');
+      const fileInput = document.getElementById('file-input');
+      const dropzoneContent = document.getElementById('dropzone-content');
 
-      // 5 MB limit validation
-      try {
-        ImageReader.validateFile(file);
-      } catch (err) {
-        alert('⚠️ ' + err.message);
+      // Max file size: 5 MB
+      const MAX_SIZE_MB = 5;
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        alert(`File size exceeds ${MAX_SIZE_MB}MB limit (${(file.size / (1024*1024)).toFixed(1)}MB). Please upload a file up to 5MB.`);
+        if (fileInput) fileInput.value = '';
         return;
       }
 
-      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-      content.innerHTML = `
+      dropzoneContent.innerHTML = `
         <span style="font-size: 28px;">⏳</span>
-        <div style="font-weight: 500; font-size: 14px; color: #1a73e8;">Processing ${escapeHtml(file.name)} (${(file.size / (1024 * 1024)).toFixed(2)} MB)...</div>
-        <p>Extracting text and medical schedules...</p>
+        <div style="font-weight: 500; font-size: 14px; color: #1a73e8;">Processing ${escapeHtml(file.name)}...</div>
+        <p>Extracting prescription text</p>
       `;
 
       try {
         let extractedText = '';
-        let previewHtml = '';
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        const isImg = file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp)$/i.test(file.name);
 
         if (isPdf) {
-          const result = await RxReminderSDK.parsePdf(file);
-          extractedText = result.rawText;
-          previewHtml = `<span style="font-size: 28px;">📄</span>`;
+          extractedText = await RxReminderSDK.parsePdf(file);
+        } else if (isImg) {
+          // Display thumbnail preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = 'preview-thumb-wrap';
+            thumbDiv.innerHTML = `<img src="${e.target.result}" class="preview-thumb" alt="Prescription preview">`;
+            dropzoneContent.appendChild(thumbDiv);
+          };
+          reader.readAsDataURL(file);
+
+          extractedText = await RxReminderSDK.parseImage(file);
         } else {
-          // Image / Photo (PNG, JPG, etc.)
-          const previewUrl = await ImageReader.getImagePreviewUrl(file);
-          const result = await RxReminderSDK.parseImage(file);
-          extractedText = result.rawText;
-          previewHtml = `
-            <div class="preview-thumb-wrap">
-              <img src="${previewUrl}" class="preview-thumb" alt="Prescription preview">
-            </div>
-          `;
+          throw new Error('Unsupported format. Please upload PDF, PNG, JPG, or JPEG.');
         }
 
         document.getElementById('prescription-text').value = extractedText;
-
-        content.innerHTML = `
-          ${previewHtml}
-          <div style="font-weight: 500; font-size: 14px; color: #137333; margin-top: 6px;">Parsed ${escapeHtml(file.name)}</div>
-          <p style="color:#1a73e8; font-weight:500; text-decoration:underline;">Click to replace with another file</p>
-        `;
-
-        if (!extractedText.trim() && !isPdf) {
-          alert('Photo uploaded! Please review or type any handwritten notes in the text area if not automatically transcribed.');
-        }
-
         processCurrentText();
+
+        const successMsg = document.createElement('div');
+        successMsg.style.cssText = 'color: #1e8e3e; font-size: 12px; margin-top: 6px; font-weight: 500;';
+        successMsg.innerText = `✓ Loaded: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+        dropzoneContent.appendChild(successMsg);
+
       } catch (err) {
-        alert('Error reading file: ' + err.message);
-        content.innerHTML = `
-          <span style="font-size: 28px;">❌</span>
-          <div style="font-weight: 500; font-size: 14px; color: #d93025;">Failed to read file</div>
-          <p style="color:#1a73e8; font-weight:500; text-decoration:underline;">Click to try another file</p>
-        `;
+        console.error('File parsing error:', err);
+        alert('Could not read file: ' + err.message);
+        resetDropzone();
       } finally {
-        const fileInput = document.getElementById('file-input');
         if (fileInput) fileInput.value = '';
       }
     }
 
-    // Drag and drop support
-    const dropzone = document.getElementById('dropzone');
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#1a73e8'; });
-    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#4285f4'; });
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.style.borderColor = '#4285f4';
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileUpload(e.dataTransfer.files[0]);
-      }
-    });
-
     function processCurrentText() {
       const text = document.getElementById('prescription-text').value;
-      if (!text.trim()) {
+      if (!text || text.trim().length === 0) {
         renderMedicines([]);
         return;
       }
@@ -366,180 +523,183 @@
       const list = document.getElementById('med-list');
       const badge = document.getElementById('med-count-badge');
       const summaryBar = document.getElementById('summary-bar');
-      const exportBtn = document.getElementById('btn-export-all');
+      const btnExport = document.getElementById('btn-export-all');
 
       if (!medicines || medicines.length === 0) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <span>No medications recognized. Ensure drug names or dosages (e.g. 500mg, 1-0-1, alternate days) are present.</span>
-          </div>`;
         badge.style.display = 'none';
         summaryBar.style.display = 'none';
-        exportBtn.style.display = 'none';
+        btnExport.style.display = 'none';
+        list.innerHTML = `
+          <div class="empty-state">
+            <span>No medications recognized. Please upload a clear prescription or edit the text.</span>
+          </div>
+        `;
         return;
       }
 
       badge.innerText = `${medicines.length} Medicine${medicines.length > 1 ? 's' : ''}`;
       badge.style.display = 'inline-block';
       summaryBar.style.display = 'flex';
-      exportBtn.style.display = 'inline-flex';
-
+      btnExport.style.display = 'inline-flex';
       list.innerHTML = '';
 
-      medicines.forEach(med => {
+      medicines.forEach((med, medIdx) => {
         const card = document.createElement('div');
         card.className = 'med-card';
-        card.id = `card-${med.id}`;
+        card.id = `med-card-${medIdx}`;
 
-        const reminderUrls = CalendarHelper.generateMedicationCalendarUrls(med);
-        const countdownInfo = getNextDoseCountdown(med);
+        const schedInfo = CalendarHelper.SCHEDULE_TYPES[med.scheduleType] || CalendarHelper.SCHEDULE_TYPES.DAILY;
+        const formLabel = med.form ? med.form.toUpperCase() : 'MEDICINE';
+        const dosageLabel = med.dosage ? `${med.dosage}` : '';
+        const durationLabel = med.duration ? `${med.duration.count} ${med.duration.unit}` : 'Until finished';
 
-        let slotsHtml = reminderUrls.map(rem => `
-          <div class="slot-row">
-            <div class="slot-time">
-              <span>⏰ ${rem.slot}:</span>
-              <input type="time" class="time-input" value="${rem.time}" onchange="changeSlotTime('${med.id}', '${rem.slot}', this.value)" title="Change dose time">
-            </div>
-            <a href="${rem.url}" target="_blank" rel="noopener noreferrer" class="btn-reminder" title="One-tap click to add to Google Calendar">
-              <span>+ 1-Tap Google Reminder</span>
-            </a>
-          </div>
-        `).join('');
+        let nextDoseInfo = getNextDoseCountdown(med);
 
         card.innerHTML = `
           <div class="med-header">
             <div>
-              <div class="med-name">💊 ${escapeHtml(med.name)}</div>
+              <div class="med-name">${escapeHtml(med.name)} ${escapeHtml(dosageLabel)}</div>
               <div class="med-badges">
-                <span class="tag tag-form">${escapeHtml(med.form)}</span>
-                <span class="tag tag-form" style="background:#e6f4ea; color:#137333;">${escapeHtml(med.dosage)}</span>
-                <span class="tag tag-freq">${escapeHtml(med.frequency)}</span>
-                <span class="tag tag-schedule">${escapeHtml(med.scheduleLabel || 'Daily')}</span>
-                <span class="tag tag-duration">${escapeHtml(med.durationText)}</span>
+                <span class="tag tag-form">${escapeHtml(formLabel)}</span>
+                <span class="tag tag-freq">${escapeHtml(med.frequency)} (${med.slots.length}x/day)</span>
+                <span class="tag tag-duration">📅 ${escapeHtml(durationLabel)}</span>
+                <span class="tag tag-schedule" id="tag-sched-${medIdx}">${escapeHtml(schedInfo.label)}</span>
+                <span class="tag tag-countdown" id="countdown-${medIdx}">${nextDoseInfo.badgeText}</span>
               </div>
             </div>
-            <div class="tag-countdown" id="countdown-${med.id}">
-              ${countdownInfo}
-            </div>
-          </div>
-
-          <!-- Schedule Pattern Dropdown Selector -->
-          <div class="schedule-control-row">
-            <label>Schedule:</label>
-            <select class="schedule-select" onchange="changeMedSchedule('${med.id}', this.value)">
-              <option value="DAILY" ${med.scheduleType === 'DAILY' ? 'selected' : ''}>Daily (Every day)</option>
-              <option value="ALTERNATE_DAYS" ${med.scheduleType === 'ALTERNATE_DAYS' ? 'selected' : ''}>Alternate Days (Every 2 days)</option>
-              <option value="THREE_DAYS_A_WEEK" ${med.scheduleType === 'THREE_DAYS_A_WEEK' ? 'selected' : ''}>3 Days a Week (Mon, Wed, Fri)</option>
-              <option value="EVENING_ONLY" ${med.scheduleType === 'EVENING_ONLY' ? 'selected' : ''}>Evening / Night Only</option>
-              <option value="WEEKLY" ${med.scheduleType === 'WEEKLY' ? 'selected' : ''}>Once a Week</option>
-            </select>
           </div>
 
           <div class="med-details">
-            <div><strong>Directions:</strong> ${escapeHtml(med.instructions)}</div>
+            <div><strong>Instructions:</strong> ${escapeHtml(med.instructions || 'As advised by doctor')}</div>
+            <div><strong>When to take:</strong> ${escapeHtml(med.foodRelation || 'Normal')}</div>
           </div>
 
-          <div class="slots-container">
-            ${slotsHtml}
+          <!-- Schedule Selector (Daily, Alternate Days, 3 Days/Week, etc.) -->
+          <div class="schedule-control-row">
+            <label for="sched-select-${medIdx}">🗓️ Repeat Pattern:</label>
+            <select class="schedule-select" id="sched-select-${medIdx}" onchange="changeMedSchedule(${medIdx}, this.value)">
+              <option value="DAILY" ${med.scheduleType === 'DAILY' ? 'selected' : ''}>Daily (Har Roz)</option>
+              <option value="ALTERNATE_DAYS" ${med.scheduleType === 'ALTERNATE_DAYS' ? 'selected' : ''}>Alternate Days (Ek Din Chhorkar)</option>
+              <option value="THREE_DAYS_A_WEEK" ${med.scheduleType === 'THREE_DAYS_A_WEEK' ? 'selected' : ''}>3 Days a Week (Mon-Wed-Fri)</option>
+              <option value="EVENING_ONLY" ${med.scheduleType === 'EVENING_ONLY' ? 'selected' : ''}>Evening Only (Sirf Shaam/Raat)</option>
+              <option value="WEEKLY" ${med.scheduleType === 'WEEKLY' ? 'selected' : ''}>Once a Week (Hafte me Ek Baar)</option>
+            </select>
+          </div>
+
+          <div class="slots-container" id="slots-container-${medIdx}">
+            ${renderSlotsHtml(med, medIdx)}
           </div>
         `;
+
         list.appendChild(card);
       });
     }
 
-    function changeMedSchedule(medId, newScheduleType) {
-      const med = currentMedicines.find(m => m.id === medId);
-      if (!med) return;
-      med.scheduleType = newScheduleType;
-
-      const labels = {
-        'DAILY': 'Daily',
-        'ALTERNATE_DAYS': 'Alternate Days (Every 2 days)',
-        'THREE_DAYS_A_WEEK': '3 Days a Week (Mon, Wed, Fri)',
-        'EVENING_ONLY': 'Evening / Night Only',
-        'WEEKLY': 'Once a Week'
-      };
-      med.scheduleLabel = labels[newScheduleType] || newScheduleType;
-
-      if (newScheduleType === 'EVENING_ONLY') {
-        med.times = [{ slot: 'Night', defaultTime: '20:30', count: 1 }];
-      }
-
-      renderMedicines(currentMedicines);
+    function renderSlotsHtml(med, medIdx) {
+      return med.slots.map((slot, slotIdx) => {
+        const reminderUrl = CalendarHelper.buildCalendarUrl(med, slot);
+        return `
+          <div class="slot-row">
+            <div class="slot-time">
+              <span>⏰ ${escapeHtml(slot.label)}:</span>
+              <input type="time" class="time-input" value="${slot.time}" onchange="updateSlotTime(${medIdx}, ${slotIdx}, this.value)">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <a href="${reminderUrl}" target="_blank" rel="noopener noreferrer" class="btn-reminder" title="Add reminder to Google Calendar with alarm">
+                + Google Reminder
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function changeSlotTime(medId, slotName, newTime) {
-      const med = currentMedicines.find(m => m.id === medId);
-      if (!med) return;
-      const targetSlot = med.times.find(t => t.slot === slotName);
-      if (targetSlot) {
-        targetSlot.customTime = newTime;
+    function changeMedSchedule(medIdx, newSchedule) {
+      if (!currentMedicines[medIdx]) return;
+      currentMedicines[medIdx].scheduleType = newSchedule;
+
+      const tag = document.getElementById(`tag-sched-${medIdx}`);
+      const schedInfo = CalendarHelper.SCHEDULE_TYPES[newSchedule] || CalendarHelper.SCHEDULE_TYPES.DAILY;
+      if (tag) tag.innerText = schedInfo.label;
+
+      const container = document.getElementById(`slots-container-${medIdx}`);
+      if (container) {
+        container.innerHTML = renderSlotsHtml(currentMedicines[medIdx], medIdx);
       }
-      renderMedicines(currentMedicines);
     }
 
+    function updateSlotTime(medIdx, slotIdx, newTime) {
+      if (!currentMedicines[medIdx] || !currentMedicines[medIdx].slots[slotIdx]) return;
+      currentMedicines[medIdx].slots[slotIdx].time = newTime;
+      const container = document.getElementById(`slots-container-${medIdx}`);
+      if (container) {
+        container.innerHTML = renderSlotsHtml(currentMedicines[medIdx], medIdx);
+      }
+    }
+
+    // --- Real-time Countdown & Alarm Monitor ---
     function getNextDoseCountdown(med) {
-      if (!med.times || med.times.length === 0) return '⏰ Scheduled';
-
       const now = new Date();
-      const currentH = now.getHours();
-      const currentM = now.getMinutes();
-      const currentTotalMin = currentH * 60 + currentM;
+      let bestDiffMs = Infinity;
+      let bestSlot = null;
 
-      let nextSlot = null;
-      let minDiff = Infinity;
+      med.slots.forEach(slot => {
+        const parts = slot.time.split(':');
+        const h = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const slotDate = new Date();
+        slotDate.setHours(h, m, 0, 0);
 
-      med.times.forEach(slot => {
-        const timeStr = slot.customTime || slot.defaultTime || '08:00';
-        const [h, m] = timeStr.split(':').map(Number);
-        const slotTotalMin = h * 60 + m;
-
-        let diff = slotTotalMin - currentTotalMin;
+        let diff = slotDate.getTime() - now.getTime();
         if (diff < 0) {
-          diff += 24 * 60; // Next day
+          // Tomorrow's dose
+          diff += 24 * 60 * 60 * 1000;
         }
-        if (diff < minDiff) {
-          minDiff = diff;
-          nextSlot = { slot: slot.slot, time: timeStr, diffMin: diff };
+
+        if (diff < bestDiffMs) {
+          bestDiffMs = diff;
+          bestSlot = slot;
         }
       });
 
-      if (!nextSlot) return '⏰ Scheduled';
+      const totalSec = Math.floor(bestDiffMs / 1000);
+      const hours = Math.floor(totalSec / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
 
-      const hours = Math.floor(nextSlot.diffMin / 60);
-      const mins = nextSlot.diffMin % 60;
-      let diffStr = '';
-      if (hours > 0) diffStr += `${hours}h `;
-      diffStr += `${mins}m`;
+      let text = '';
+      if (hours === 0 && mins === 0) {
+        text = '⏳ Dose due NOW!';
+      } else if (hours === 0) {
+        text = `⏳ In ${mins}m (${bestSlot ? bestSlot.label : ''})`;
+      } else {
+        text = `⏳ In ${hours}h ${mins}m`;
+      }
 
-      return `⏳ Next dose: in ${diffStr} (${nextSlot.time})`;
+      return { badgeText: text, diffMs: bestDiffMs, slot: bestSlot };
     }
 
-    // Live Alarm Timer Tick: checks every second
     function checkAlarmTimerTick() {
-      if (!currentMedicines || currentMedicines.length === 0) return;
-
       const now = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const timeKey = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const currentH = String(now.getHours()).padStart(2, '0');
+      const currentM = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${currentH}:${currentM}`;
 
-      // Update countdown badges
-      currentMedicines.forEach(med => {
-        const badge = document.getElementById(`countdown-${med.id}`);
-        if (badge) {
-          badge.innerText = getNextDoseCountdown(med);
+      // Update countdown tags every second
+      currentMedicines.forEach((med, idx) => {
+        const countdownEl = document.getElementById(`countdown-${idx}`);
+        if (countdownEl) {
+          const nextInfo = getNextDoseCountdown(med);
+          countdownEl.innerText = nextInfo.badgeText;
         }
-      });
 
-      // Check if any medicine dose matches the current minute
-      currentMedicines.forEach(med => {
-        med.times.forEach(slot => {
-          const doseTime = slot.customTime || slot.defaultTime || '08:00';
-          const triggerKey = `${med.id}_${slot.slot}_${timeKey}`;
-
-          if (doseTime === timeKey && !triggeredToday[triggerKey]) {
-            triggeredToday[triggerKey] = true;
-            triggerAlarmModal(med, slot);
+        // Check if any slot matches the current time
+        med.slots.forEach(slot => {
+          if (slot.time === timeStr) {
+            const alarmKey = `${med.name}_${slot.label}_${timeStr}`;
+            if (!triggeredToday[alarmKey]) {
+              triggeredToday[alarmKey] = true;
+              triggerAlarmModal(med, slot);
+            }
           }
         });
       });
@@ -547,34 +707,36 @@
 
     function triggerAlarmModal(med, slot) {
       activeAlarmMed = { med, slot };
-      document.getElementById('alarm-med-name').innerText = `💊 ${med.name} (${med.dosage})`;
-      document.getElementById('alarm-slot-time').innerText = `⏰ ${slot.slot} Dose at ${slot.customTime || slot.defaultTime}`;
-      document.getElementById('alarm-instruction').innerText = `Directions: ${med.instructions} (${med.scheduleLabel || 'Daily'})`;
-      
-      document.getElementById('alarm-overlay').style.display = 'flex';
 
-      // Ring audio chime!
-      AlarmSound.startAlarm();
+      // Play ringing loop sound
+      AlarmSound.startAlarmLoop();
 
-      // Send desktop notification
+      // Show ringing modal
+      const overlay = document.getElementById('alarm-overlay');
+      document.getElementById('alarm-med-name').innerText = `${med.name} ${med.dosage || ''}`;
+      document.getElementById('alarm-slot-time').innerText = `${slot.label} (${slot.time})`;
+      document.getElementById('alarm-instruction').innerText = med.instructions || med.foodRelation || 'Take medicine now as prescribed.';
+      overlay.style.display = 'flex';
+
+      // Trigger system browser notification if allowed
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        new Notification(`💊 Time to take ${med.name}!`, {
-          body: `Dose: ${med.dosage} - ${med.instructions} (${slot.slot} at ${slot.customTime || slot.defaultTime})`,
-          icon: './chrome-extension/icons/icon-128.png'
+        new Notification(`⏰ Medicine Time: ${med.name}`, {
+          body: `${slot.label} dose due! ${med.foodRelation || ''}`,
+          icon: './icons/icon-192.png'
         });
       }
     }
 
-    function dismissAlarm(isTaken) {
+    function dismissAlarm(markedAsTaken) {
       AlarmSound.stopAlarm();
       document.getElementById('alarm-overlay').style.display = 'none';
-      if (isTaken && activeAlarmMed) {
-        alert(`Great job! Marked ${activeAlarmMed.med.name} as taken for today.`);
+      if (markedAsTaken && activeAlarmMed) {
+        alert(`✓ Marked ${activeAlarmMed.med.name} as TAKEN for ${activeAlarmMed.slot.label}!`);
       }
       activeAlarmMed = null;
     }
 
-    function snoozeAlarm(mins = 10) {
+    function snoozeAlarm(mins) {
       AlarmSound.stopAlarm();
       document.getElementById('alarm-overlay').style.display = 'none';
       if (activeAlarmMed) {

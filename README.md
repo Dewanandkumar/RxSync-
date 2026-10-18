@@ -2,73 +2,82 @@
 
 > **Prescription to Google Calendar & Smart Medicine Alarm in One Tap.**
 
-A dual-mode solution (Chrome Extension Tool + Modular JavaScript SDK) that automatically extracts medical prescription schedules from PDFs and Photos (PNG/JPG up to 5MB), sets recurring Google Calendar reminders with a single tap, and provides an in-app live ringing alarm timer.
+A cross-platform healthcare assistant available as a **Mobile PWA (Progressive Web App)**, **Manifest V3 Chrome Extension**, and **Modular JavaScript SDK**. Automatically extracts doctor prescription schedules from PDFs and Photos (PNG/JPG up to 5MB), creates pre-filled recurring Google Calendar reminders with a single tap, and rings a live audio alarm timer.
 
 ---
 
-## 🎯 What Problem This Solves
+## 📱 Mobile PWA App Features
 
-Prescriptions are filled with medical abbreviations (`Tab. Augmentin 625mg 1-0-1 after food x 5 days`, `BID`, `TDS`, `HS`). Manually scheduling every morning, afternoon, and night dose across multiple medications into Google Calendar is tedious and error-prone.
-
-This project delivers:
-1. **Zero-Friction 1-Tap Reminders:** Generates direct Google Calendar Web Intent links (`action=TEMPLATE&...`) with pre-calculated recurrence rules (`RRULE:FREQ=DAILY;COUNT=5`), alarms, dosage notes, and food instructions. No OAuth registration or Google Cloud API setup is required for the end user!
-2. **100% Client-Side Privacy:** Built-in PDF extraction uses Mozilla PDF.js. Sensitive medical documents never leave the user's browser.
-3. **Dual Form Factor:** Test both approaches — an unpacked Chrome Extension (with Popup and Side Panel) and a standalone browser/Node SDK.
+- **📲 1-Tap Home Screen Install:** Install directly to your phone's home screen (Android & iOS Safari) or desktop Chrome/Edge without needing an App Store.
+- **📴 100% Offline Capable:** Built-in Service Worker (`sw.js`) caches all medical parsing algorithms, audio synthesizers, and PDF renderers.
+- **🔔 Live Ringing Alarm:** Synthesizes an audio alarm bell (A5 -> C6) with countdown timers, snooze (10m), and "Mark as Taken" tracking.
+- **🗓️ Multi-Pattern Doctor Schedules:**
+  - **Daily (Har Roz):** Every day at set slots.
+  - **Alternate Days (Ek Din Chhorkar):** `RRULE:FREQ=DAILY;INTERVAL=2`.
+  - **3 Days a Week (Mon-Wed-Fri):** `RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR`.
+  - **Evening / Night Only:** Single dose after dinner (`HS`).
+  - **Weekly:** Once every week.
+- **🔒 100% Client-Side Privacy:** No photos or sensitive prescription documents ever leave the user's browser.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-rx-google-reminder/
-├── chrome-extension/         # Spike 1: Manifest V3 Chrome Extension
+RxSync/
+├── index.html                # Main PWA Web Application (GitHub Pages ready)
+├── manifest.webmanifest      # PWA App Manifest (standalone display, icons, shortcuts)
+├── sw.js                     # Offline Service Worker & cache manager
+├── icons/                    # High-res PWA icons (192x192, 512x512 maskable & any)
+├── lib/                      # Mozilla PDF.js & worker engine
+├── core/                     # Modular business logic
+│   ├── medical-parser.js     # Doctor abbreviation & schedule extractor (OD, BD, 1-0-1, etc.)
+│   ├── calendar-helper.js    # Google Calendar Intent URLs, RRULEs & .ICS generator
+│   ├── alarm-sound.js        # Web Audio API 2-tone alarm chime synthesizer
+│   ├── image-reader.js       # PNG/JPG (up to 5MB) reader & canvas pre-processing
+│   └── pdf-reader.js         # Browser-native PDF text extraction
+│
+├── chrome-extension/         # Manifest V3 Chrome Extension
 │   ├── manifest.json         # Extension configuration (MV3)
 │   ├── service-worker.js     # Background service worker
-│   ├── CHROMEWEBSTORE.md     # Chrome Web Store metadata & privacy justifications
 │   ├── popup/                # Extension popup UI (HTML/CSS/JS)
 │   ├── sidepanel/            # Side panel (opens alongside prescription PDF in Chrome)
 │   ├── icons/                # 16x16, 48x48, 128x128 icons
-│   ├── lib/                  # Standalone Mozilla PDF.js & worker
-│   └── core/                 # Shared parser & calendar engine
+│   └── CHROMEWEBSTORE.md     # Chrome Web Store submission metadata
 │
-├── sdk/                      # Spike 2: Standalone JavaScript SDK
+├── sdk/                      # Standalone SDK & Playground
+│   ├── index.html            # SDK visual test playground
 │   ├── rx-reminder-sdk.js    # Core SDK client library
-│   ├── index.html            # Interactive visual testing playground
-│   ├── sample-prescriptions.js # Realistic doctor prescription test samples
-│   ├── lib/                  # Standalone PDF.js bundle
-│   └── core/                 # Shared parser & calendar engine
-│
-├── core/                     # Shared logic
-│   ├── medical-parser.js     # Doctor abbreviation & schedule extractor (OD, BD, 1-0-1, etc.)
-│   ├── calendar-helper.js    # Google Calendar Intent URLs, RRULEs & .ICS export
-│   └── pdf-reader.js         # Browser-native PDF text extraction
+│   └── sample-prescriptions.js # Realistic doctor prescription test samples
 │
 └── test-data/                # Automated verification
-    ├── sample-prescription.pdf # Generated realistic prescription PDF for testing
-    ├── test-suite.html       # Automated unit & integration tests
-    └── test-pdf-b64.html     # End-to-end PDF decoding verification
+    ├── sample-prescription.pdf # Realistic test prescription PDF
+    └── test-suite.html       # Automated unit & integration test runner (100% passing)
 ```
 
 ---
 
-## 🚀 How to Test Both Prototypes
+## 🚀 How to Run & Install
 
-### Option A: Testing Spike 1 (Chrome Extension)
-1. Open Google Chrome.
-2. Navigate to `chrome://extensions/`.
-3. Enable **Developer mode** (toggle in the top-right corner).
-4. Click **Load unpacked**.
-5. Select the folder:
-   `C:\Users\DELL\.gemini\antigravity\scratch\rx-google-reminder\chrome-extension`
-6. Click the extension icon in your Chrome toolbar:
-   - Drop any prescription PDF (or test `test-data/sample-prescription.pdf`).
-   - Or click on any sample chip (**Acute**, **Chronic**, **Allergy**).
-   - Click **+ 1-Tap Reminder** on any medicine to instantly open Google Calendar with title, time, and recurrence pre-filled!
+### 1. Mobile PWA (Phone / Tablet / Browser)
+1. Open `index.html` in your mobile browser (or host on GitHub Pages: `https://<username>.github.io/RxSync-/`).
+2. **On Android / Chrome / Edge:** Tap the **"📲 Install App"** button at the top, or tap browser menu (⋮) -> *"Install app"* or *"Add to Home screen"*.
+3. **On iPhone / iPad (Safari):** Tap the **Share button (⎋)** at the bottom of Safari, scroll down and tap **"Add to Home Screen" (होम स्क्रीन में जोड़ें)**.
+4. The app icon will appear on your home screen and open in standalone full-screen mode like a native mobile app!
 
-### Option B: Testing Spike 2 (SDK Playground)
-1. Open `C:\Users\DELL\.gemini\antigravity\scratch\rx-google-reminder\sdk\index.html` in Chrome.
-2. Test both the visual UI and the programmatic SDK integration.
-3. Test 1-Tap Google Reminders, bulk opening, and `.ICS` calendar download.
+### 2. Chrome Extension (Desktop)
+1. Open Google Chrome and go to `chrome://extensions/`.
+2. Enable **Developer mode** (toggle in top-right corner).
+3. Click **Load unpacked** and select the `chrome-extension` folder.
+4. Open the extension icon in your Chrome toolbar.
+
+### 3. Automated Test Suite
+Open `test-data/test-suite.html` in any browser to verify:
+- Medical parsing (abbreviations, dosages, food timings)
+- RRULE recurrence generation (Daily, Alternate Days, Mon-Wed-Fri, Evening)
+- 5MB file upload limit protection
+- Web Audio synthesizer functions
+- PDF & Image extraction
 
 ---
 
@@ -79,6 +88,7 @@ rx-google-reminder/
 const medicines = RxReminderSDK.parseText(`
   Tab. Augmentin 625mg 1-0-1 after food x 5 days
   Tab. Dolo 650mg TDS x 3 days
+  Tab. Azithromycin 500mg on alternate days x 6 days
 `);
 
 // 2. Generate 1-tap Google Calendar URLs:

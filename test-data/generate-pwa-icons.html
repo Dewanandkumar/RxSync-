@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body>
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512"></canvas>
+<script>
+function drawRxIcon(canvas, size) {
+  const ctx = canvas.getContext('2d');
+  const scale = size / 512;
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  // Background squircle with gradient
+  const grad = ctx.createLinearGradient(0, 0, 512, 512);
+  grad.addColorStop(0, '#1a73e8');
+  grad.addColorStop(0.5, '#1557b0');
+  grad.addColorStop(1, '#0d47a1');
+  
+  // Rounded rect
+  const r = 104;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(512 - r, 0);
+  ctx.quadraticCurveTo(512, 0, 512, r);
+  ctx.lineTo(512, 512 - r);
+  ctx.quadraticCurveTo(512, 512, 512 - r, 512);
+  ctx.lineTo(r, 512);
+  ctx.quadraticCurveTo(0, 512, 0, 512 - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Subtle inner border
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.stroke();
+
+  // Pill at 45 degree angle in center
+  ctx.save();
+  ctx.translate(256, 256);
+  ctx.rotate(-Math.PI / 4);
+
+  const pw = 90;
+  const ph = 230;
+  const pr = pw / 2;
+
+  // Shadow for pill
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 12;
+
+  // Top half of pill (White)
+  ctx.beginPath();
+  ctx.moveTo(-pr, 0);
+  ctx.lineTo(-pr, -ph/2 + pr);
+  ctx.arc(0, -ph/2 + pr, pr, Math.PI, 0, false);
+  ctx.lineTo(pr, 0);
+  ctx.closePath();
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+
+  // Reset shadow for bottom half
+  ctx.shadowColor = 'transparent';
+
+  // Bottom half of pill (Emerald Medical Green / Coral)
+  ctx.beginPath();
+  ctx.moveTo(-pr, 0);
+  ctx.lineTo(-pr, ph/2 - pr);
+  ctx.arc(0, ph/2 - pr, pr, Math.PI, 0, true);
+  ctx.lineTo(pr, 0);
+  ctx.closePath();
+  ctx.fillStyle = '#34a853';
+  ctx.fill();
+
+  // Pill dividing line
+  ctx.beginPath();
+  ctx.moveTo(-pr, 0);
+  ctx.lineTo(pr, 0);
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = '#1e8e3e';
+  ctx.stroke();
+
+  // Pill glossy highlight
+  ctx.beginPath();
+  ctx.arc(-pr/2, -ph/4, 6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fill();
+
+  ctx.restore();
+
+  // Rx symbol in top-right or overlay
+  ctx.save();
+  ctx.font = 'bold 84px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 10;
+  ctx.fillText('Rx', 130, 140);
+  ctx.restore();
+
+  // Alarm Bell symbol in bottom-right
+  ctx.save();
+  ctx.font = '76px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 10;
+  ctx.fillText('🔔', 375, 375);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+window.onload = function() {
+  const c192 = document.getElementById('c192');
+  const c512 = document.getElementById('c512');
+  drawRxIcon(c192, 192);
+  drawRxIcon(c512, 512);
+
+  const b64_192 = c192.toDataURL('image/png').split(',')[1];
+  const b64_512 = c512.toDataURL('image/png').split(',')[1];
+
+  const div = document.createElement('div');
+  div.id = 'results';
+  div.innerHTML = `<textarea id="t192">${b64_192}</textarea><textarea id="t512">${b64_512}</textarea>`;
+  document.body.appendChild(div);
+  console.log('DONE_GENERATING');
+};
+</script>
+</body>
+</html>

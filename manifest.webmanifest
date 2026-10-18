@@ -1,0 +1,56 @@
+{
+  "name": "RxSync - Prescription & Smart Medicine Alarm",
+  "short_name": "RxSync",
+  "description": "Prescription to Google Calendar & Smart Medicine Alarm in One Tap.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["medical", "health", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload Prescription",
+      "short_name": "Upload Rx",
+      "description": "Upload a doctor prescription PDF or photo",
+      "url": "./index.html#upload",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Test Medicine Alarm",
+      "short_name": "Test Alarm",
+      "description": "Test the medicine reminder alarm sound",
+      "url": "./index.html#alarm",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
