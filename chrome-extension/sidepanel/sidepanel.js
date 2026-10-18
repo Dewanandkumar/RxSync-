@@ -83,6 +83,14 @@ function initEventListeners() {
     parseAndRenderText(text);
   });
 
+  // Test chime button
+  const chimeBtn = document.getElementById('btn-test-chime');
+  if (chimeBtn) {
+    chimeBtn.addEventListener('click', () => {
+      AlarmSound.playChime();
+    });
+  }
+
   // Open sidepanel button
   const btnSp = document.getElementById('btn-open-sidepanel'); if (btnSp) btnSp.addEventListener('click', async () => {
     try {
@@ -114,23 +122,42 @@ function loadSamplePrescription(id) {
 }
 
 async function handlePdfFile(file) {
+  if (!file) return;
+
+  try {
+    ImageReader.validateFile(file);
+  } catch (err) {
+    alert('⚠️ ' + err.message);
+    return;
+  }
+
   const dropzone = document.getElementById('dropzone');
   dropzone.querySelector('.drop-icon').innerText = '⏳';
   dropzone.querySelector('.drop-text').innerText = `Reading ${file.name}...`;
 
   try {
-    const result = await PdfReader.extractTextFromPdf(file);
-    document.getElementById('prescription-text').value = result.text;
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    let extractedText = '';
+
+    if (isPdf) {
+      const result = await PdfReader.extractTextFromPdf(file);
+      extractedText = result.text;
+    } else {
+      const result = await ImageReader.extractTextFromImage(file);
+      extractedText = result.text;
+    }
+
+    document.getElementById('prescription-text').value = extractedText;
     
     dropzone.querySelector('.drop-icon').innerText = '✅';
-    dropzone.querySelector('.drop-text').innerText = `${file.name} (${result.numPages} page)`;
+    dropzone.querySelector('.drop-text').innerText = `${file.name}`;
     dropzone.querySelector('.drop-sub').innerText = 'Prescription successfully parsed';
 
-    parseAndRenderText(result.text);
+    parseAndRenderText(extractedText);
   } catch (err) {
-    console.error('PDF extraction error:', err);
+    console.error('File extraction error:', err);
     dropzone.querySelector('.drop-icon').innerText = '❌';
-    dropzone.querySelector('.drop-text').innerText = 'Failed to read PDF';
+    dropzone.querySelector('.drop-text').innerText = 'Failed to read file';
     dropzone.querySelector('.drop-sub').innerText = err.message || 'Please try pasting text';
   } finally {
     const fileInput = document.getElementById('file-input');
@@ -194,6 +221,7 @@ function renderMedications(medicines) {
             <span class="tag tag-form">${escapeHtml(med.form)}</span>
             <span class="tag tag-dosage">${escapeHtml(med.dosage)}</span>
             <span class="tag tag-freq">${escapeHtml(med.frequency)}</span>
+            <span class="tag tag-dur" style="background:#fef7e0; color:#b06000; font-weight:600;">${escapeHtml(med.scheduleLabel || 'Daily')}</span>
             <span class="tag tag-dur">${escapeHtml(med.durationText)}</span>
           </div>
         </div>

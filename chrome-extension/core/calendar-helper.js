@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Google Calendar & Reminder Generator
  * Generates One-Tap Web Intent URLs, REST API payloads, and standard iCalendar (.ics) files.
  */
@@ -36,8 +36,10 @@
     
     // Parse slot time (e.g., "08:00", "20:30")
     const timeParts = (slot.customTime || slot.defaultTime || '08:00').split(':');
-    const hours = parseInt(timeParts[0], 10) || 8;
-    const minutes = parseInt(timeParts[1], 10) || 0;
+    const rawH = parseInt(timeParts[0], 10);
+    const hours = isNaN(rawH) ? 8 : rawH;
+    const rawM = parseInt(timeParts[1], 10);
+    const minutes = isNaN(rawM) ? 0 : rawM;
 
     const eventStart = new Date(startDate);
     eventStart.setHours(hours, minutes, 0, 0);
@@ -62,9 +64,24 @@
 
     let url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(details)}&location=${encodeURIComponent('Home / Health Routine')}`;
 
-    // Add Recurrence Rule
-    if (medication.durationDays && medication.durationDays > 1) {
-      const rrule = `RRULE:FREQ=DAILY;COUNT=${medication.durationDays}`;
+    // Add Recurrence Rule based on scheduleType
+    let rrule = '';
+    const sType = medication.scheduleType || 'DAILY';
+    if (sType === 'ALTERNATE_DAYS') {
+      const count = Math.max(1, Math.ceil((medication.durationDays || 6) / 2));
+      rrule = `RRULE:FREQ=DAILY;INTERVAL=2;COUNT=${count}`;
+    } else if (sType === 'THREE_DAYS_A_WEEK') {
+      const weeks = Math.max(1, Math.ceil((medication.durationDays || 7) / 7));
+      const count = weeks * 3;
+      rrule = `RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=${count}`;
+    } else if (sType === 'WEEKLY') {
+      const count = Math.max(1, Math.ceil((medication.durationDays || 7) / 7));
+      rrule = `RRULE:FREQ=WEEKLY;COUNT=${count}`;
+    } else if (medication.durationDays && medication.durationDays > 1) {
+      rrule = `RRULE:FREQ=DAILY;COUNT=${medication.durationDays}`;
+    }
+
+    if (rrule) {
       url += `&recur=${encodeURIComponent(rrule)}`;
     }
 
@@ -111,8 +128,10 @@
 
       slots.forEach(slot => {
         const timeParts = (slot.customTime || slot.defaultTime || '08:00').split(':');
-        const h = parseInt(timeParts[0], 10) || 8;
-        const m = parseInt(timeParts[1], 10) || 0;
+        const rawH = parseInt(timeParts[0], 10);
+        const h = isNaN(rawH) ? 8 : rawH;
+        const rawM = parseInt(timeParts[1], 10);
+        const m = isNaN(rawM) ? 0 : rawM;
 
         const eventDate = new Date(startDate);
         eventDate.setHours(h, m, 0, 0);
@@ -134,7 +153,18 @@
         ics.push(`DESCRIPTION:${med.instructions} - ${med.durationText}. Prescribed dose: ${slot.slot}`);
         ics.push(`LOCATION:Home`);
 
-        if (med.durationDays && med.durationDays > 1) {
+        const sType = med.scheduleType || 'DAILY';
+        if (sType === 'ALTERNATE_DAYS') {
+          const count = Math.max(1, Math.ceil((med.durationDays || 6) / 2));
+          ics.push(`RRULE:FREQ=DAILY;INTERVAL=2;COUNT=${count}`);
+        } else if (sType === 'THREE_DAYS_A_WEEK') {
+          const weeks = Math.max(1, Math.ceil((med.durationDays || 7) / 7));
+          const count = weeks * 3;
+          ics.push(`RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=${count}`);
+        } else if (sType === 'WEEKLY') {
+          const count = Math.max(1, Math.ceil((med.durationDays || 7) / 7));
+          ics.push(`RRULE:FREQ=WEEKLY;COUNT=${count}`);
+        } else if (med.durationDays && med.durationDays > 1) {
           ics.push(`RRULE:FREQ=DAILY;COUNT=${med.durationDays}`);
         }
 
@@ -162,8 +192,10 @@
     const timeZone = options.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
     const timeParts = (slot.customTime || slot.defaultTime || '08:00').split(':');
-    const h = parseInt(timeParts[0], 10) || 8;
-    const m = parseInt(timeParts[1], 10) || 0;
+    const rawH = parseInt(timeParts[0], 10);
+    const h = isNaN(rawH) ? 8 : rawH;
+    const rawM = parseInt(timeParts[1], 10);
+    const m = isNaN(rawM) ? 0 : rawM;
 
     const start = new Date(startDate);
     start.setHours(h, m, 0, 0);

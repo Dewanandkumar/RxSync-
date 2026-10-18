@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,14 +28,17 @@
         <span class="subtitle">Side-by-side with your PDF</span>
       </div>
     </div>
+    <div class="header-actions">
+      <button id="btn-test-chime" class="icon-btn" title="Test Alarm Ring Sound">🔔</button>
+    </div>
   </header>
 
   <main class="content">
     <!-- Dropzone Area -->
     <div id="dropzone" class="dropzone">
-      <input type="file" id="file-input" accept=".pdf" class="hidden-input">
-      <div class="drop-icon">📄</div>
-      <div class="drop-text">Drop prescription PDF or click to browse</div>
+      <input type="file" id="file-input" accept=".pdf, .png, .jpg, .jpeg, image/*" class="hidden-input">
+      <div class="drop-icon">📄 📷</div>
+      <div class="drop-text">Drop prescription PDF or Photo (up to 5MB)</div>
       <div class="drop-sub">100% private & client-side extraction</div>
     </div>
 
@@ -85,6 +88,8 @@
   <script src="../core/medical-parser.js"></script>
   <script src="../core/calendar-helper.js"></script>
   <script src="../core/pdf-reader.js"></script>
+  <script src="../core/alarm-sound.js"></script>
+  <script src="../core/image-reader.js"></script>
   <script src="../sample-prescriptions.js"></script>
   <script src="sidepanel.js"></script>
 </body>

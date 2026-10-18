@@ -1,4 +1,4 @@
-﻿/**
+/**
  * RxReminderSDK - Medical Prescription to Google Reminder SDK
  * Lightweight, zero-dependency client library for parsing prescriptions and triggering 1-tap Google Reminders.
  */
@@ -123,6 +123,49 @@
       if (typeof window !== 'undefined' && window.open) {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
+    },
+
+    /**
+     * Reads a PNG, JPG, or JPEG image file and extracts prescription text & medicines
+     * @param {File|Blob} file
+     * @param {Object} [options]
+     */
+    async parseImage(file, options = {}) {
+      const reader = typeof root !== 'undefined' ? root.ImageReader : (typeof ImageReader !== 'undefined' ? ImageReader : null);
+      if (!reader) throw new Error('ImageReader module missing.');
+      const res = await reader.extractTextFromImage(file, options);
+      const medicines = res.text ? this.parseText(res.text) : [];
+      return {
+        medicines: medicines,
+        rawText: res.text,
+        previewUrl: res.previewUrl,
+        isOcr: res.isOcr || false,
+        needsManualReview: res.needsManualReview || false
+      };
+    },
+
+    /**
+     * Plays a pleasant medical chime tone
+     */
+    playAlarmChime() {
+      const sound = typeof root !== 'undefined' ? root.AlarmSound : (typeof AlarmSound !== 'undefined' ? AlarmSound : null);
+      if (sound) sound.playChime();
+    },
+
+    /**
+     * Starts continuous ringing alarm until stopped
+     */
+    startAlarm(callback) {
+      const sound = typeof root !== 'undefined' ? root.AlarmSound : (typeof AlarmSound !== 'undefined' ? AlarmSound : null);
+      if (sound) sound.startAlarm(callback);
+    },
+
+    /**
+     * Stops any ongoing ringing alarm
+     */
+    stopAlarm() {
+      const sound = typeof root !== 'undefined' ? root.AlarmSound : (typeof AlarmSound !== 'undefined' ? AlarmSound : null);
+      if (sound) sound.stopAlarm();
     },
 
     /**

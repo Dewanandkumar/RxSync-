@@ -1,9 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>Rx Reminder Test Suite</title>
   <script src="../core/medical-parser.js"></script>
   <script src="../core/calendar-helper.js"></script>
+  <script src="../core/alarm-sound.js"></script>
+  <script src="../core/image-reader.js"></script>
   <script src="../sdk/sample-prescriptions.js"></script>
 </head>
 <body>
@@ -64,7 +66,50 @@
       assert(ics.includes('RRULE:FREQ=DAILY;COUNT=5'), 'ICS contains recurrence rule');
       assert(ics.includes('BEGIN:VALARM'), 'ICS contains VALARM notification triggers');
 
-      results.push('🎉 ALL AUTOMATED TESTS COMPLETED SUCCESSFULLY!');
+      // Test 5: NEW Feature - Alternate Days Schedule Pattern
+      const altSample = SAMPLE_PRESCRIPTIONS.find(s => s.id === 'sample-alternate-schedule');
+      assert(!!altSample, 'Alternate days preset exists');
+      const altMeds = MedicalParser.parsePrescriptionText(altSample.text);
+      
+      const azithroAlt = altMeds.find(m => m.name.toLowerCase().includes('azithromycin'));
+      assert(!!azithroAlt, 'Azithromycin alternate days extracted');
+      assert(azithroAlt.scheduleType === 'ALTERNATE_DAYS', `Detected scheduleType ALTERNATE_DAYS, got ${azithroAlt.scheduleType}`);
+      const azithroGcal = CalendarHelper.generateMedicationCalendarUrls(azithroAlt);
+      assert(azithroGcal[0].url.includes('INTERVAL%3D2'), `Alternate days URL contains INTERVAL=2 recurrence: ${azithroGcal[0].url}`);
+
+      // Test 6: NEW Feature - 3 Days a Week Schedule Pattern (Mon, Wed, Fri)
+      const calcium3D = altMeds.find(m => m.name.toLowerCase().includes('calcium'));
+      assert(!!calcium3D, 'Calcium 3 days a week extracted');
+      assert(calcium3D.scheduleType === 'THREE_DAYS_A_WEEK', `Detected scheduleType THREE_DAYS_A_WEEK, got ${calcium3D.scheduleType}`);
+      const calciumGcal = CalendarHelper.generateMedicationCalendarUrls(calcium3D);
+      assert(calciumGcal[0].url.includes('BYDAY%3DMO%2CWE%2CFR'), `3 days a week URL contains BYDAY=MO,WE,FR recurrence: ${calciumGcal[0].url}`);
+
+      // Test 7: NEW Feature - Evening / Night Only Pattern
+      const montairEve = altMeds.find(m => m.name.toLowerCase().includes('montair'));
+      assert(!!montairEve, 'Montair evening only extracted');
+      assert(montairEve.scheduleType === 'EVENING_ONLY', `Detected scheduleType EVENING_ONLY, got ${montairEve.scheduleType}`);
+      assert(montairEve.times.length === 1 && montairEve.times[0].slot === 'Night', 'Only single evening/night slot configured');
+
+      // Test 8: NEW Feature - File Size Limit (5 MB)
+      let rejected = false;
+      try {
+        ImageReader.validateFile({ name: 'huge_scan.jpg', size: 6 * 1024 * 1024, type: 'image/jpeg' });
+      } catch (err) {
+        rejected = true;
+        assert(err.message.includes('5 MB'), 'File size > 5MB correctly rejected');
+      }
+      assert(rejected, 'Huge 6MB file was rejected');
+
+      const accepted = ImageReader.validateFile({ name: 'rx_photo.png', size: 3.5 * 1024 * 1024, type: 'image/png' });
+      assert(accepted.isImage && !accepted.isPdf, 'Valid 3.5MB PNG file accepted');
+
+      // Test 9: NEW Feature - Web Audio API Chime & Alarm Synthesizer
+      assert(typeof AlarmSound !== 'undefined', 'AlarmSound synthesizer module loaded');
+      assert(typeof AlarmSound.playChime === 'function', 'AlarmSound.playChime is a function');
+      assert(typeof AlarmSound.startAlarm === 'function', 'AlarmSound.startAlarm is a function');
+      assert(typeof AlarmSound.stopAlarm === 'function', 'AlarmSound.stopAlarm is a function');
+
+      results.push('🎉 ALL AUTOMATED TESTS (INCLUDING NEW FEATURES) PASSED 100%!');
     } catch (e) {
       results.push(`FATAL ERROR: ${e.message}`);
     }

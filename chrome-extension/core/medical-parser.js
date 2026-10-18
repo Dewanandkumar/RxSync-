@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Medical Prescription Pattern Parser
  * Extracts medications, dosages, frequency (1-0-1, BID, TDS, etc.), food instructions, and duration.
  */
@@ -279,12 +279,39 @@
       };
     }
 
+    // Advanced Schedule Pattern Detection
+    let scheduleType = 'DAILY';
+    let scheduleLabel = 'Daily';
+
+    if (/\b(alternate\s+days?|every\s+(?:other|alternate)\s+day|q\.?o\.?d\.?|q2d)\b/i.test(line)) {
+      scheduleType = 'ALTERNATE_DAYS';
+      scheduleLabel = 'Alternate Days (Every 2 days)';
+    } else if (/\b(3\s+days?\s*(?:a|per)\s*week|thrice\s+a\s+week|mon(?:day)?\s*[-–,\s]+\s*wed(?:nesday)?\s*[-–,\s]+\s*fri(?:day)?|mwf)\b/i.test(line)) {
+      scheduleType = 'THREE_DAYS_A_WEEK';
+      scheduleLabel = '3 Days a Week (Mon, Wed, Fri)';
+    } else if (/\b(evening\s+only|night\s+only|only\s+at\s+night|at\s+bedtime|hs)\b/i.test(line) || (frequency && frequency.notation === '0-0-1')) {
+      scheduleType = 'EVENING_ONLY';
+      scheduleLabel = 'Evening / Night Only';
+      // Ensure only evening/night slot exists
+      if (!frequency.times.some(t => t.slot === 'Night' || t.slot === 'Evening')) {
+        frequency.times = [{ slot: 'Night', defaultTime: '20:30', count: 1 }];
+      } else {
+        frequency.times = frequency.times.filter(t => t.slot === 'Night' || t.slot === 'Evening' || t.slot === 'Bedtime');
+      }
+      frequency.description = 'Evening / Night Only (20:30)';
+    } else if (/\b(once\s+a\s+week|weekly|every\s+week)\b/i.test(line)) {
+      scheduleType = 'WEEKLY';
+      scheduleLabel = 'Once a Week';
+    }
+
     return {
       id: 'rx_' + Math.random().toString(36).substring(2, 9),
       name: cleanName,
       form: form,
       dosage: dosage || '1 dose',
       frequency: frequency.notation,
+      scheduleType: scheduleType,
+      scheduleLabel: scheduleLabel,
       times: frequency.times,
       timingDescription: frequency.description,
       instructions: instruction,
@@ -332,6 +359,18 @@
       if (dosageMatch) {
         med.dosage = dosageMatch[1];
       }
+    }
+
+    // Check if extra line has advanced schedule info
+    if (/\b(alternate\s+days?|every\s+(?:other|alternate)\s+day|q\.?o\.?d\.?|q2d)\b/i.test(line)) {
+      med.scheduleType = 'ALTERNATE_DAYS';
+      med.scheduleLabel = 'Alternate Days (Every 2 days)';
+    } else if (/\b(3\s+days?\s*(?:a|per)\s*week|thrice\s+a\s+week|mon(?:day)?\s*[-–,\s]+\s*wed(?:nesday)?\s*[-–,\s]+\s*fri(?:day)?|mwf)\b/i.test(line)) {
+      med.scheduleType = 'THREE_DAYS_A_WEEK';
+      med.scheduleLabel = '3 Days a Week (Mon, Wed, Fri)';
+    } else if (/\b(evening\s+only|night\s+only|only\s+at\s+night|at\s+bedtime|hs)\b/i.test(line)) {
+      med.scheduleType = 'EVENING_ONLY';
+      med.scheduleLabel = 'Evening / Night Only';
     }
   }
 

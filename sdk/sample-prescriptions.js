@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Sample Medical Prescriptions for Testing and Demonstration
  */
 const SAMPLE_PRESCRIPTIONS = [
@@ -46,6 +46,20 @@ Rx Prescribed:
 2. Tab. Azithromycin 500mg - 1-0-0 empty stomach x 3 days
 3. Syp. Ascoril-D 10ml - TDS thrice daily after food x 5 days
 4. Tab. Paracetamol 500mg - 1 tab SOS for body ache or fever`
+  },
+  {
+    id: 'sample-alternate-schedule',
+    title: 'Alternate Days & 3 Days/Week Special Course',
+    doctor: 'Dr. Vikram Malhotra, MD (Rheumatology & Immunology)',
+    text: `NATIONAL CARE CLINIC
+Doctor: Dr. Vikram Malhotra, MD
+Patient: Rakesh Sharma (Age: 46)
+
+Rx:
+1. Tab. Azithromycin 500mg - 1 tab on alternate days x 6 days
+2. Tab. Calcium 500mg - 3 days a week (Mon, Wed, Fri) in morning x 4 weeks
+3. Tab. Montair-LC - Evening only at night x 10 days
+4. Tab. Paracetamol 650mg - 1 tab SOS for pain`
   }
 ];
 
