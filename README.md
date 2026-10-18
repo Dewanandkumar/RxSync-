@@ -1,6 +1,8 @@
-﻿# Rx to Google Reminder (Spike Prototypes)
+# RxSync 💊
 
-A dual-mode solution (Chrome Extension Tool + Modular JavaScript SDK) that automatically extracts medical prescription schedules from PDFs and sets recurring Google Reminders / Google Calendar events with a single tap.
+> **Prescription to Google Calendar & Smart Medicine Alarm in One Tap.**
+
+A dual-mode solution (Chrome Extension Tool + Modular JavaScript SDK) that automatically extracts medical prescription schedules from PDFs and Photos (PNG/JPG up to 5MB), sets recurring Google Calendar reminders with a single tap, and provides an in-app live ringing alarm timer.
 
 ---
 
